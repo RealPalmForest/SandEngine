@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SandEngine.Particles;
+using SandEngine.AbstractParticles;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -21,7 +22,7 @@ public class GameMap
     public GameMap(int width, int height)
     {
         ParticleTexture = new Texture2D(Globals.GraphicsDevice, 1, 1);
-        ParticleTexture.SetData(new Color[] {Color.White});
+        ParticleTexture.SetData(new Color[] { Color.White });
 
         Width = width;
         Height = height;
@@ -35,9 +36,9 @@ public class GameMap
 
         for (int y = 0; y < Height; y++)
         {
-            for(int x = 0; x < Width; x++)
+            for (int x = 0; x < Width; x++)
             {
-                if(map[x, y] != null)
+                if (map[x, y] != null)
                 {
                     render.Add(map[x, y].Color);
 
@@ -65,7 +66,7 @@ public class GameMap
         //     else Debug.WriteLine("");
         // }           
 
-        if(InputManager.Mouse.LeftButton == ButtonState.Pressed)
+        if (InputManager.Mouse.LeftButton == ButtonState.Pressed)
         {
             Fill(InputManager.Mouse.X - 2, InputManager.Mouse.Y - 2, InputManager.Mouse.X + 2, InputManager.Mouse.Y + 2, new Sand(this));
             //SetParticleAt(InputManager.Mouse.X, InputManager.Mouse.Y, new Sand(this));
@@ -77,24 +78,24 @@ public class GameMap
         }
         else if (InputManager.Mouse.MiddleButton == ButtonState.Pressed)
         {
-            Fill(InputManager.Mouse.X - 2, InputManager.Mouse.Y - 2, InputManager.Mouse.X + 2, InputManager.Mouse.Y + 2, new Steam(this));
+            Fill(InputManager.Mouse.X - 2, InputManager.Mouse.Y - 2, InputManager.Mouse.X + 2, InputManager.Mouse.Y + 2, new Wood(this));
             //SetParticleAt(InputManager.Mouse.X, InputManager.Mouse.Y, new Water(this));
         }
 
-        if(InputManager.KeyUp(Keys.C))
+        if (InputManager.KeyUp(Keys.C))
         {
             int particleCount = 0;
             int staticCount = 0;
 
             for (int y = Height - 1; y > 0; y--)
             {
-                for(int x = 0; x < Width; x++)
+                for (int x = 0; x < Width; x++)
                 {
-                    if(map[x, y] != null)
+                    if (map[x, y] != null)
                     {
                         particleCount++;
 
-                        if(map[x, y].StaticState)
+                        if (map[x, y].StaticState)
                             staticCount++;
                     }
                 }
@@ -105,9 +106,9 @@ public class GameMap
 
         for (int y = Height - 1; y > 0; y--)
         {
-            for(int x = 0; x < Width; x++)
+            for (int x = 0; x < Width; x++)
             {
-                if(map[x, y] == null)
+                if (map[x, y] == null)
                     continue;
 
                 map[x, y].HasBeenUpdated = false;
@@ -116,12 +117,12 @@ public class GameMap
 
         for (int y = Height - 1; y > 0; y--)
         {
-            for(int x = 0; x < Width; x++)
+            for (int x = 0; x < Width; x++)
             {
-                if(map[x, y] == null)
+                if (map[x, y] == null)
                     continue;
 
-                if(map[x, y].HasBeenUpdated || map[x, y].StaticState)
+                if (map[x, y].HasBeenUpdated || map[x, y].StaticState)
                     continue;
 
                 map[x, y].HasBeenUpdated = true;
@@ -133,20 +134,20 @@ public class GameMap
 
     public Particle GetParticleAt(int x, int y)
     {
-        if(!IsInBounds(x, y)) return null;
-        return map[x, y];
+        if (!IsInBounds(x, y)) return null;
+        return (map[x, y] is MovingParticle) ? (MovingParticle)map[x, y] : map[x, y];
     }
 
     public void SetParticleAt(int x, int y, Particle particle)
     {
-        if(x < 0 || y < 0 || x > Width - 1 || y > Height - 1)
+        if (x < 0 || y < 0 || x > Width - 1 || y > Height - 1)
             return;
 
-        if(particle != null)
+        if (particle != null)
         {
             particle.X = x;
             particle.Y = y;
-        } 
+        }
 
         map[x, y] = particle;
     }
@@ -155,7 +156,7 @@ public class GameMap
     {
         for (int y = startY; y <= endY; y++)
         {
-            for(int x = startX; x <= endX; x++)
+            for (int x = startX; x <= endX; x++)
             {
                 SetParticleAt(x, y, particle.Clone());
             }
