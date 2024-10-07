@@ -111,7 +111,7 @@ public abstract class MovingParticle : Particle
     {
         int direction = Math.Sign(maxDistance); // Determine spread direction
 
-        if (X + maxDistance == parentMap.Width - 1 || X + maxDistance == 0)
+        if (X + maxDistance >= parentMap.Width - 1 || X + maxDistance <= 0)
             return false;
 
         for (int i = 1; i <= Math.Abs(maxDistance); i++)
@@ -127,13 +127,8 @@ public abstract class MovingParticle : Particle
 
             Particle targetParticle = parentMap.GetParticleAt(targetX, Y);
 
-            // If the space is empty, continue moving
-            if (targetParticle == null)
-            {
-                continue;
-            }
-            // ...otherwise, move to the last available space
-            else
+            // If the space is not empty, move to the previous space
+            if (targetParticle != null)
             {
                 Move(X + ((i - 1) * direction), Y);
                 return true;

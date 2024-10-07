@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace SandEngine.AbstractParticles;
 
 public abstract class LiquidParticle : MovingParticle
@@ -19,22 +21,49 @@ public abstract class LiquidParticle : MovingParticle
                 Move(X - 1, Y + 1);
             else
             {
-                bool moveLeft = Globals.Random.Next(2) == 0;
-
-                // Try dispersing left or right up to the max distance
-                if (moveLeft)
-                {
-                    if (!DisperseHorizontally(-DispersionAmount))
-                        return DisperseHorizontally(DispersionAmount); // If left fails, try right
-                }
+                // Disperse in the less filled direction
+                if (CountLiquidsInDirection(1, DispersionAmount * 2) > CountLiquidsInDirection(-1, DispersionAmount * 2))
+                    DisperseHorizontally(-DispersionAmount);
                 else
-                {
-                    if (!DisperseHorizontally(DispersionAmount))
-                        return DisperseHorizontally(-DispersionAmount); // If right fails, try left
-                }
+                    DisperseHorizontally(DispersionAmount);
             }
+
+            // Additional dispersion chance for more spread
+            if (Globals.Random.Next(2) == 0)
+            {
+                if (CountLiquidsInDirection(1, DispersionAmount * 2) > CountLiquidsInDirection(-1, DispersionAmount * 2))
+                    DisperseHorizontally(-DispersionAmount);
+                else
+                    DisperseHorizontally(DispersionAmount);
+            }
+
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Counts the amount of particles in a horizontal line of the specified direction
+    /// </summary>
+    private int CountLiquidsInDirection(int direction, int maxDistance)
+    {
+        int liquidCount = 0;
+
+        // Check each space in the specified direction up to the max distance
+        for (int i = 1; i <= maxDistance; i++)
+        {
+            int targetX = X + (i * direction);
+
+            if (!parentMap.IsInBounds(targetX, Y))
+                break;
+
+            // Count the liquid particles in a row
+            Particle particle = parentMap.GetParticleAt(targetX, Y);
+            if (particle != null && particle is LiquidParticle)
+                liquidCount++;
+            else break;
+        }
+
+        return liquidCount;
     }
 }

@@ -8,6 +8,7 @@ using SandEngine.Particles;
 using SandEngine.AbstractParticles;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System;
 
 namespace SandEngine;
 
@@ -19,6 +20,9 @@ public class GameMap
 
     public Particle[,] map;
 
+    private Particle[] spawnableParticles;
+    private int selectedParticleIndex = 0;
+
     public GameMap(int width, int height)
     {
         ParticleTexture = new Texture2D(Globals.GraphicsDevice, 1, 1);
@@ -28,6 +32,13 @@ public class GameMap
         Height = height;
 
         map = new Particle[Width, Height];
+
+        spawnableParticles = new Particle[] {
+            new Sand(this),
+            new Water(this),
+            new Wood(this),
+            new Smoke(this)
+        };
     }
 
     public void Draw()
@@ -56,31 +67,17 @@ public class GameMap
 
     public void UpdateMap()
     {
-        int mouseX = InputManager.Mouse.X;
-        int mouseY = InputManager.Mouse.Y;
-        // if(IsInBounds(mouseX, mouseY))
-        // {
-        //     Debug.Write(InputManager.Mouse.Position + " --- " + map[mouseX, mouseY]);
-        //     if(map[mouseX, mouseY] == null)
-        //         Debug.WriteLine("");
-        //     else Debug.WriteLine("");
-        // }           
+        if (Math.Sign(InputManager.OldScrollWheelValue - InputManager.ScrollWheelValue) != 0)
+        {
+            selectedParticleIndex += Math.Sign(InputManager.OldScrollWheelValue - InputManager.ScrollWheelValue);
+            selectedParticleIndex = Math.Clamp(selectedParticleIndex, 0, spawnableParticles.Length - 1);
+            Debug.WriteLine("Selected particle: " + spawnableParticles[selectedParticleIndex].GetType().Name.ToUpper());
+        }
 
         if (InputManager.Mouse.LeftButton == ButtonState.Pressed)
-        {
-            Fill(InputManager.Mouse.X - 2, InputManager.Mouse.Y - 2, InputManager.Mouse.X + 2, InputManager.Mouse.Y + 2, new Sand(this));
-            //SetParticleAt(InputManager.Mouse.X, InputManager.Mouse.Y, new Sand(this));
-        }
+            Fill(InputManager.Mouse.X - 2, InputManager.Mouse.Y - 2, InputManager.Mouse.X + 2, InputManager.Mouse.Y + 2, spawnableParticles[selectedParticleIndex]);
         else if (InputManager.Mouse.RightButton == ButtonState.Pressed)
-        {
-            Fill(InputManager.Mouse.X - 2, InputManager.Mouse.Y - 2, InputManager.Mouse.X + 2, InputManager.Mouse.Y + 2, new Water(this));
-            //SetParticleAt(InputManager.Mouse.X, InputManager.Mouse.Y, new Water(this));
-        }
-        else if (InputManager.Mouse.MiddleButton == ButtonState.Pressed)
-        {
-            Fill(InputManager.Mouse.X - 2, InputManager.Mouse.Y - 2, InputManager.Mouse.X + 2, InputManager.Mouse.Y + 2, new Wood(this));
-            //SetParticleAt(InputManager.Mouse.X, InputManager.Mouse.Y, new Water(this));
-        }
+            Fill(InputManager.Mouse.X - 2, InputManager.Mouse.Y - 2, InputManager.Mouse.X + 2, InputManager.Mouse.Y + 2, null);
 
         if (InputManager.KeyUp(Keys.C))
         {
@@ -158,7 +155,7 @@ public class GameMap
         {
             for (int x = startX; x <= endX; x++)
             {
-                SetParticleAt(x, y, particle.Clone());
+                SetParticleAt(x, y, particle == null ? null : particle.Clone());
             }
         }
     }

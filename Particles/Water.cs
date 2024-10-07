@@ -8,7 +8,7 @@ public class Water : LiquidParticle
     public Water(GameMap parentMap) : base(parentMap)
     {
         Color = Color.DodgerBlue;
-        DispersionAmount = 7;
+        DispersionAmount = 9;
     }
 
     public override void Update()
