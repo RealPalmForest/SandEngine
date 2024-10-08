@@ -13,9 +13,9 @@ public abstract class GasParticle : MovingParticle
     {
         if (!UpdateVerticalMovement())
         {
-            if (GetAboveLeft() == null)
+            if (GetLeft() == null && GetAboveLeft() == null)
                 Move(X - 1, Y - 1);
-            else if (GetAboveRight() == null)
+            else if (GetRight() == null && GetAboveRight() == null)
                 Move(X + 1, Y - 1);
             else
             {

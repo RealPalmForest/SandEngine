@@ -67,15 +67,24 @@ public class GameMap
 
     public void UpdateMap()
     {
-        if (Math.Sign(InputManager.OldScrollWheelValue - InputManager.ScrollWheelValue) != 0)
+        if (Math.Sign(InputManager.MouseOld.ScrollWheelValue - InputManager.Mouse.ScrollWheelValue) != 0)
         {
-            selectedParticleIndex += Math.Sign(InputManager.OldScrollWheelValue - InputManager.ScrollWheelValue);
+            selectedParticleIndex += Math.Sign(InputManager.MouseOld.ScrollWheelValue - InputManager.Mouse.ScrollWheelValue);
             selectedParticleIndex = Math.Clamp(selectedParticleIndex, 0, spawnableParticles.Length - 1);
             Debug.WriteLine("Selected particle: " + spawnableParticles[selectedParticleIndex].GetType().Name.ToUpper());
         }
 
+        Point mousePos = InputManager.Mouse.Position;
+        Point oldMousePos = InputManager.MouseOld.Position;
+
         if (InputManager.Mouse.LeftButton == ButtonState.Pressed)
-            Fill(InputManager.Mouse.X - 2, InputManager.Mouse.Y - 2, InputManager.Mouse.X + 2, InputManager.Mouse.Y + 2, spawnableParticles[selectedParticleIndex]);
+        {
+            foreach ((int, int) pos in GetLine(oldMousePos.X, oldMousePos.Y, mousePos.X, mousePos.Y))
+            {
+                SetParticleAt(pos.Item1, pos.Item2, spawnableParticles[selectedParticleIndex]);
+                //Fill(pos.Item1 - 2, pos.Item2 - 2, pos.Item1 + 2, pos.Item2 + 2, spawnableParticles[selectedParticleIndex]);
+            }
+        }
         else if (InputManager.Mouse.RightButton == ButtonState.Pressed)
             Fill(InputManager.Mouse.X - 2, InputManager.Mouse.Y - 2, InputManager.Mouse.X + 2, InputManager.Mouse.Y + 2, null);
 
@@ -98,10 +107,10 @@ public class GameMap
                 }
             }
 
-            Debug.WriteLine("PARTICLE COUNT: " + particleCount + "  |   STATIC: " + staticCount);
+            Debug.WriteLine("PARTICLE COUNT: " + particleCount + "   |   STATIC: " + staticCount);
         }
 
-        for (int y = Height - 1; y > 0; y--)
+        for (int y = Height - 1; y >= 0; y--)
         {
             for (int x = 0; x < Width; x++)
             {
@@ -112,7 +121,7 @@ public class GameMap
             }
         }
 
-        for (int y = Height - 1; y > 0; y--)
+        for (int y = Height - 1; y >= 0; y--)
         {
             for (int x = 0; x < Width; x++)
             {
@@ -142,6 +151,10 @@ public class GameMap
 
         if (particle != null)
         {
+            Particle newParticle = particle.Clone();
+            particle.Remove();
+            particle = newParticle;
+
             particle.X = x;
             particle.Y = y;
         }
@@ -163,5 +176,51 @@ public class GameMap
     public bool IsInBounds(int x, int y)
     {
         return !(x < 0 || y < 0 || x > Width - 1 || y > Height - 1);
+    }
+
+
+    /// <summary>
+    /// Returns a list of points representing a line from (startX, startY) to (endX, endY) using Bresenham's Line Algorithm
+    /// </summary>
+    /// <param name="startX">The starting x coordinate</param>
+    /// <param name="startY">The starting y coordinate</param>
+    /// <param name="endX">The ending x coordinate</param>
+    /// <param name="endY">The ending y coordinate</param>
+    /// <returns>A list of points forming a line from the start to the end position.</returns>
+    public static List<(int, int)> GetLine(int startX, int startY, int endX, int endY)
+    {
+        List<(int, int)> line = new List<(int, int)>();
+
+        int changeX = Math.Abs(endX - startX);
+        int changeY = Math.Abs(endY - startY);
+        int dirX = startX < endX ? 1 : -1;
+        int dirY = startY < endY ? 1 : -1;
+        int err = changeX - changeY;
+
+        while (true)
+        {
+            // Include the current point
+            line.Add((startX, startY));
+
+            // Check if the end point has been reached
+            if (startX == endX && startY == endY)
+                break;
+
+            // Increase the X and Y in the appropriate directions
+            int e2 = 2 * err;
+            if (e2 > -changeY)
+            {
+                err -= changeY;
+                startX += dirX;
+            }
+
+            if (e2 < changeX)
+            {
+                err += changeX;
+                startY += dirY;
+            }
+        }
+
+        return line;
     }
 }

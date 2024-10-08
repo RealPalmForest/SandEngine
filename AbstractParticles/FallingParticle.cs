@@ -14,13 +14,13 @@ public abstract class FallingParticle : MovingParticle
         {
             if (GetBelow() != null && GetBelow() is LiquidParticle && DisplaceLiquids)
                 DisplaceLiquidAt(X, Y + 1);
-            else if (GetBelowLeft() == null)
+            else if (GetLeft() == null && GetBelowLeft() == null)
                 Move(X - 1, Y + 1);
-            else if (GetBelowLeft() is LiquidParticle && DisplaceLiquids)
+            else if (GetLeft() == null && GetBelowLeft() is LiquidParticle && DisplaceLiquids)
                 DisplaceLiquidAt(X - 1, Y + 1);
-            else if (GetBelowRight() == null)
+            else if (GetRight() == null && GetBelowRight() == null)
                 Move(X + 1, Y + 1);
-            else if (GetBelowRight() is LiquidParticle && DisplaceLiquids)
+            else if (GetRight() == null && GetBelowRight() is LiquidParticle && DisplaceLiquids)
                 DisplaceLiquidAt(X + 1, Y + 1);
             else return false;
         }

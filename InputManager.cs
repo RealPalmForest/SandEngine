@@ -14,9 +14,6 @@ namespace SandEngine
 
         public static Vector2 Direction => direction;
 
-        public static int ScrollWheelValue { get; private set; }
-        public static int OldScrollWheelValue { get; private set; }
-
         private static Vector2 direction;
 
 
@@ -27,9 +24,6 @@ namespace SandEngine
 
             MouseOld = Mouse;
             Mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
-
-            OldScrollWheelValue = ScrollWheelValue;
-            ScrollWheelValue = Mouse.ScrollWheelValue;
 
             direction = Vector2.Zero;
 

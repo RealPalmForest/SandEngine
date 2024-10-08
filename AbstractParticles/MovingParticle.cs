@@ -41,9 +41,9 @@ public abstract class MovingParticle : Particle
         if (targetParticle != null)
         {
             // If the target particle is at a stand-still, then this particle rests too
-            if (targetParticle is StableParticle || ((MovingParticle)targetParticle).VelocityY == Gravity)
+            if (targetParticle is StableParticle || ((MovingParticle)targetParticle).VelocityY <= Gravity)
             {
-                VelocityY = Gravity;
+                VelocityY = ((MovingParticle)targetParticle).VelocityY;
                 return false;
             }
         }
@@ -56,7 +56,7 @@ public abstract class MovingParticle : Particle
         {
             int targetY = Y + i;
 
-            if (targetY >= parentMap.Height)
+            if (targetY >= parentMap.Height || targetY < 0)
             {
                 Move(X, Y + i - 1);
                 return i > 1 ? true : false;
@@ -124,6 +124,7 @@ public abstract class MovingParticle : Particle
                 Move(X + ((i - 1) * direction), Y);
                 return true;
             }
+
 
             Particle targetParticle = parentMap.GetParticleAt(targetX, Y);
 

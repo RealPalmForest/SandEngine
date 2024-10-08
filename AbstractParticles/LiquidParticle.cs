@@ -13,31 +13,23 @@ public abstract class LiquidParticle : MovingParticle
     /// <returns>Returns true if particle was successfully moved</returns>
     protected virtual bool DefaultLiquidBehaviour()
     {
-        if (!UpdateVerticalMovement())
+        UpdateVerticalMovement();
+
+        if (GetRight() == null && GetBelowRight() == null)
+            Move(X + 1, Y + 1);
+        else if (GetLeft() == null && GetBelowLeft() == null)
+            Move(X - 1, Y + 1);
+        else
         {
-            if (GetBelowRight() == null)
-                Move(X + 1, Y + 1);
-            else if (GetBelowLeft() == null)
-                Move(X - 1, Y + 1);
+            // Disperse in the less filled direction
+            if (/*CountLiquidsInDirection(1, DispersionAmount * 2) > CountLiquidsInDirection(-1, DispersionAmount * 2)*/Globals.Random.Next(2) == 0)
+                DisperseHorizontally(-DispersionAmount);
             else
-            {
-                // Disperse in the less filled direction
-                if (CountLiquidsInDirection(1, DispersionAmount * 2) > CountLiquidsInDirection(-1, DispersionAmount * 2))
-                    DisperseHorizontally(-DispersionAmount);
-                else
-                    DisperseHorizontally(DispersionAmount);
-            }
-
-            // Additional dispersion chance for more spread
-            if (Globals.Random.Next(2) == 0)
-            {
-                if (CountLiquidsInDirection(1, DispersionAmount * 2) > CountLiquidsInDirection(-1, DispersionAmount * 2))
-                    DisperseHorizontally(-DispersionAmount);
-                else
-                    DisperseHorizontally(DispersionAmount);
-            }
-
+                DisperseHorizontally(DispersionAmount);
         }
+
+
+
 
         return true;
     }
