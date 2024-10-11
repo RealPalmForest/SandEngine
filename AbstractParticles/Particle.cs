@@ -7,6 +7,7 @@ namespace SandEngine.AbstractParticles;
 
 public abstract class Particle
 {
+    public int Lifetime { get; set; }
     public bool StaticState { get; set; }
     public bool HasBeenUpdated { get; set; }
     public Color Color { get; set; }
@@ -21,7 +22,6 @@ public abstract class Particle
     public Particle(GameMap parentMap)
     {
         this.parentMap = parentMap;
-
     }
 
     public virtual void Update() { }
@@ -62,6 +62,9 @@ public abstract class Particle
         if (X == x && Y == y)
             return;
 
+        if (parentMap.GetParticleAt(x, y) == null)
+            Move(x, y);
+
         DisableSurroundingStaticState();
         parentMap.GetParticleAt(x, y).DisableSurroundingStaticState();
 
@@ -84,6 +87,13 @@ public abstract class Particle
         if (GetAboveLeft() != null) GetAboveLeft().StaticState = false;
         if (GetBelowRight() != null) GetBelowRight().StaticState = false;
         if (GetBelowLeft() != null) GetBelowLeft().StaticState = false;
+    }
+
+    public void Replace(Particle particle)
+    {
+        StaticState = false;
+        DisableSurroundingStaticState();
+        parentMap.SetParticleAt(X, Y, particle);
     }
 
 

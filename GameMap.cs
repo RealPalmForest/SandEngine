@@ -38,7 +38,10 @@ public class GameMap
             new Sand(this).GetType(),
             new Water(this).GetType(),
             new Wood(this).GetType(),
-            new Smoke(this).GetType()
+            new Smoke(this).GetType(),
+            new Dirt(this).GetType(),
+            new Cement(this).GetType(),
+            new Concrete(this).GetType()
         };
     }
 
@@ -64,6 +67,9 @@ public class GameMap
         Texture2D texture = new Texture2D(Globals.GraphicsDevice, Width, Height);
         texture.SetData(render.ToArray());
         Globals.SpriteBatch.Draw(texture, Vector2.Zero, Color.White);
+
+
+        DrawUI();
     }
 
     public void UpdateMap()
@@ -93,32 +99,11 @@ public class GameMap
             foreach ((int, int) pos in GetLine(oldMousePos.X, oldMousePos.Y, mousePos.X, mousePos.Y))
             {
                 //SetParticleAt(pos.Item1, pos.Item2, spawnableParticles[selectedParticleIndex].Clone());
-                Fill(pos.Item1 - 2, pos.Item2 - 2, pos.Item1 + 2, pos.Item2 + 2, null);
+                Fill(pos.Item1 - 4, pos.Item2 - 4, pos.Item1 + 4, pos.Item2 + 4, null);
             }
         }
 
-
-        if (InputManager.KeyUp(Keys.C))
-        {
-            int particleCount = 0;
-            int staticCount = 0;
-
-            for (int y = Height - 1; y > 0; y--)
-            {
-                for (int x = 0; x < Width; x++)
-                {
-                    if (map[x, y] != null)
-                    {
-                        particleCount++;
-
-                        if (map[x, y].StaticState)
-                            staticCount++;
-                    }
-                }
-            }
-
-            Debug.WriteLine("PARTICLE COUNT: " + particleCount + "   |   STATIC: " + staticCount);
-        }
+        // if (GetParticleAt(mousePos.X, mousePos.Y) != null) Debug.WriteLine(GetParticleAt(mousePos.X, mousePos.Y).Lifetime);
 
         for (int y = Height - 1; y >= 0; y--)
         {
@@ -128,6 +113,7 @@ public class GameMap
                     continue;
 
                 map[x, y].HasBeenUpdated = false;
+                map[x, y].Lifetime++;
             }
         }
 
@@ -146,6 +132,9 @@ public class GameMap
                 map[x, y].Update();
             }
         }
+
+        if (InputManager.KeyUp(Keys.C))
+            CountParticles();
     }
 
     public Particle GetParticleAt(int x, int y)
@@ -195,7 +184,7 @@ public class GameMap
                     if (GetParticleAt(x, y) != null)
                         GetParticleAt(x, y).DisableSurroundingStaticState();
 
-                    SetParticleAt(x, y, particle == null ? null : particle.Clone());
+                    SetParticleAt(x, y, particle == null ? null : CreateParticle(particle.GetType()));
                 }
             }
         }
@@ -255,5 +244,33 @@ public class GameMap
     public Particle CreateParticle(Type type)
     {
         return Activator.CreateInstance(type, this) as Particle;
+    }
+
+    public int CountParticles()
+    {
+        int particleCount = 0;
+        int staticCount = 0;
+
+        for (int y = Height - 1; y > 0; y--)
+        {
+            for (int x = 0; x < Width; x++)
+            {
+                if (map[x, y] != null)
+                {
+                    particleCount++;
+
+                    if (map[x, y].StaticState)
+                        staticCount++;
+                }
+            }
+        }
+
+        Debug.WriteLine("PARTICLES: " + particleCount.ToString("#,##0") + "   |   STATIC: " + staticCount.ToString("#,##0"));
+        return particleCount;
+    }
+
+    private void DrawUI()
+    {
+        Globals.SpriteBatch.DrawString(Globals.MainFont, spawnableParticles[selectedParticleIndex].Name, new Vector2(15, 15), Color.White);
     }
 }

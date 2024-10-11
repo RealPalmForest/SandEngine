@@ -11,4 +11,6 @@ public static class Globals
     public static ContentManager Content { get; set; }
 
     public static Random Random { get; private set; } = new Random();
+
+    public static SpriteFont MainFont { get; set; }
 }

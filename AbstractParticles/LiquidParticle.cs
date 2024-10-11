@@ -5,6 +5,10 @@ namespace SandEngine.AbstractParticles;
 
 public abstract class LiquidParticle : MovingParticle
 {
+    // Determines which liquids float above others, and which switch
+    // Lower density rises above higher density liquids
+    public float LiquidDensity { get; protected set; } = 1;
+
     public LiquidParticle(GameMap parentMap) : base(parentMap) { }
 
 
@@ -16,6 +20,17 @@ public abstract class LiquidParticle : MovingParticle
     {
         if (!UpdateVerticalMovement())
         {
+            // If there is another liquid particle below, and it's less dense than this one, displace
+            if (GetBelow() is LiquidParticle && (GetBelow() as LiquidParticle).LiquidDensity < LiquidDensity)
+                Displace(X, Y + 1);
+
+            // Repeat check for below-left and below-right
+            if (GetBelowLeft() is LiquidParticle && (GetBelowLeft() as LiquidParticle).LiquidDensity < LiquidDensity)
+                SwapWith(X - 1, Y + 1);
+            if (GetBelowRight() is LiquidParticle && (GetBelowRight() as LiquidParticle).LiquidDensity < LiquidDensity)
+                SwapWith(X + 1, Y + 1);
+
+
             if (GetBelow() is GasParticle)
                 Displace(X, Y + 1);
 
@@ -43,14 +58,19 @@ public abstract class LiquidParticle : MovingParticle
             if (parentMap.GetParticleAt(X - dist, Y) is LiquidParticle && parentMap.GetParticleAt(X - dist - 1, Y) == null && dist < maxDistance)
                 continue;
 
-            if (!parentMap.IsInBounds(X - dist, Y) || parentMap.GetParticleAt(X - dist, Y) != null)
+            if (!parentMap.IsInBounds(X - dist, Y) || parentMap.GetParticleAt(X - dist, Y) != null && !(parentMap.GetParticleAt(X - dist, Y) is LiquidParticle))
             {
-                Move(X - dist + 1, Y);
+                SwapWith(X - dist + 1, Y);
                 return;
+            }
+
+            if (parentMap.GetParticleAt(X - dist, Y) is LiquidParticle)
+            {
+
             }
         }
 
-        Move(X - maxDistance, Y);
+        SwapWith(X - maxDistance, Y);
     }
 
     public void DisperseRight(int maxDistance)
@@ -61,14 +81,14 @@ public abstract class LiquidParticle : MovingParticle
             if (parentMap.GetParticleAt(X + dist, Y) is LiquidParticle && parentMap.GetParticleAt(X + dist + 1, Y) == null && dist < maxDistance)
                 continue;
 
-            if (!parentMap.IsInBounds(X + dist, Y) || parentMap.GetParticleAt(X + dist, Y) != null)
+            if (!parentMap.IsInBounds(X + dist, Y) || parentMap.GetParticleAt(X + dist, Y) != null && !(parentMap.GetParticleAt(X + dist, Y) is LiquidParticle))
             {
-                Move(X + dist - 1, Y);
+                SwapWith(X + dist - 1, Y);
                 return;
             }
         }
 
-        Move(X + maxDistance, Y);
+        SwapWith(X + maxDistance, Y);
     }
 
 

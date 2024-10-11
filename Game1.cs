@@ -33,6 +33,7 @@ public class Game1 : Game
         Globals.GraphicsDevice = GraphicsDevice;
         Globals.SpriteBatch = _spriteBatch;
         Globals.Content = Content;
+        Globals.MainFont = Content.Load<SpriteFont>("MainFont");
 
         world = new GameMap(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
         //Debug.WriteLine(GraphicsDevice.Viewport.Bounds);
