@@ -9,6 +9,7 @@ using SandEngine.AbstractParticles;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using System.Reflection;
 
 namespace SandEngine;
 
@@ -20,7 +21,7 @@ public class GameMap
 
     public Particle[,] map;
 
-    private Particle[] spawnableParticles;
+    private Type[] spawnableParticles;
     private int selectedParticleIndex = 0;
 
     public GameMap(int width, int height)
@@ -33,11 +34,11 @@ public class GameMap
 
         map = new Particle[Width, Height];
 
-        spawnableParticles = new Particle[] {
-            new Sand(this),
-            new Water(this),
-            new Wood(this),
-            new Smoke(this)
+        spawnableParticles = new Type[] {
+            new Sand(this).GetType(),
+            new Water(this).GetType(),
+            new Wood(this).GetType(),
+            new Smoke(this).GetType()
         };
     }
 
@@ -71,7 +72,7 @@ public class GameMap
         {
             selectedParticleIndex += Math.Sign(InputManager.MouseOld.ScrollWheelValue - InputManager.Mouse.ScrollWheelValue);
             selectedParticleIndex = Math.Clamp(selectedParticleIndex, 0, spawnableParticles.Length - 1);
-            Debug.WriteLine("Selected particle: " + spawnableParticles[selectedParticleIndex].GetType().Name.ToUpper());
+            Debug.WriteLine("Selected particle: " + spawnableParticles[selectedParticleIndex].Name.ToUpper());
         }
 
         Point mousePos = InputManager.Mouse.Position;
@@ -81,12 +82,21 @@ public class GameMap
         {
             foreach ((int, int) pos in GetLine(oldMousePos.X, oldMousePos.Y, mousePos.X, mousePos.Y))
             {
-                SetParticleAt(pos.Item1, pos.Item2, spawnableParticles[selectedParticleIndex]);
-                //Fill(pos.Item1 - 2, pos.Item2 - 2, pos.Item1 + 2, pos.Item2 + 2, spawnableParticles[selectedParticleIndex]);
+                bool stable = spawnableParticles[selectedParticleIndex].IsSubclassOf(typeof(StableParticle));
+
+                //SetParticleAt(pos.Item1, pos.Item2, CreateParticle(spawnableParticles[selectedParticleIndex]));
+                Fill(pos.Item1 - 4, pos.Item2 - 4, pos.Item1 + 4, pos.Item2 + 4, CreateParticle(spawnableParticles[selectedParticleIndex]), stable ? 1f : 0.03f);
             }
         }
         else if (InputManager.Mouse.RightButton == ButtonState.Pressed)
-            Fill(InputManager.Mouse.X - 2, InputManager.Mouse.Y - 2, InputManager.Mouse.X + 2, InputManager.Mouse.Y + 2, null);
+        {
+            foreach ((int, int) pos in GetLine(oldMousePos.X, oldMousePos.Y, mousePos.X, mousePos.Y))
+            {
+                //SetParticleAt(pos.Item1, pos.Item2, spawnableParticles[selectedParticleIndex].Clone());
+                Fill(pos.Item1 - 2, pos.Item2 - 2, pos.Item1 + 2, pos.Item2 + 2, null);
+            }
+        }
+
 
         if (InputManager.KeyUp(Keys.C))
         {
@@ -151,10 +161,6 @@ public class GameMap
 
         if (particle != null)
         {
-            Particle newParticle = particle.Clone();
-            particle.Remove();
-            particle = newParticle;
-
             particle.X = x;
             particle.Y = y;
         }
@@ -162,13 +168,35 @@ public class GameMap
         map[x, y] = particle;
     }
 
-    private void Fill(int startX, int startY, int endX, int endY, Particle particle)
+    public Particle[] GetParticlesAround(int x, int y)
+    {
+        Particle[] around = new Particle[8];
+
+        if (IsInBounds(x, y - 1)) around[0] = map[x, y - 1]; // Up
+        if (IsInBounds(x + 1, y - 1)) around[1] = map[x + 1, y - 1]; // Up Right
+        if (IsInBounds(x + 1, y)) around[2] = map[x + 1, y]; // Right
+        if (IsInBounds(x + 1, y + 1)) around[3] = map[x + 1, y + 1]; // Down Right
+        if (IsInBounds(x, y + 1)) around[4] = map[x, y + 1]; // Down
+        if (IsInBounds(x - 1, y + 1)) around[5] = map[x - 1, y + 1]; // Down Left
+        if (IsInBounds(x - 1, y)) around[6] = map[x - 1, y]; // Left
+        if (IsInBounds(x - 1, y - 1)) around[7] = map[x - 1, y - 1]; // Up Left
+
+        return around;
+    }
+
+    private void Fill(int startX, int startY, int endX, int endY, Particle particle, float chance = 1.0f)
     {
         for (int y = startY; y <= endY; y++)
         {
             for (int x = startX; x <= endX; x++)
             {
-                SetParticleAt(x, y, particle == null ? null : particle.Clone());
+                if (Globals.Random.NextDouble() < chance)
+                {
+                    if (GetParticleAt(x, y) != null)
+                        GetParticleAt(x, y).DisableSurroundingStaticState();
+
+                    SetParticleAt(x, y, particle == null ? null : particle.Clone());
+                }
             }
         }
     }
@@ -222,5 +250,10 @@ public class GameMap
         }
 
         return line;
+    }
+
+    public Particle CreateParticle(Type type)
+    {
+        return Activator.CreateInstance(type, this) as Particle;
     }
 }

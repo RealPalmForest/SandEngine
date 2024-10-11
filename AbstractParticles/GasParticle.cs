@@ -17,22 +17,49 @@ public abstract class GasParticle : MovingParticle
                 Move(X - 1, Y - 1);
             else if (GetRight() == null && GetAboveRight() == null)
                 Move(X + 1, Y - 1);
+
+            if (Globals.Random.Next(2) == 0)
+                DisperseLeft(DispersionAmount);
             else
-            {
-                // Try dispersing left or right up to the max distance
-                if (Globals.Random.Next(2) == 0)
-                {
-                    if (!DisperseHorizontally(-DispersionAmount))
-                        return DisperseHorizontally(DispersionAmount); // If left fails, try right
-                }
-                else
-                {
-                    if (!DisperseHorizontally(DispersionAmount))
-                        return DisperseHorizontally(-DispersionAmount); // If right fails, try left
-                }
-            }
+                DisperseRight(DispersionAmount);
         }
 
         return true;
+    }
+
+    public void DisperseLeft(int maxDistance)
+    {
+        // Attempt to disperse left up to the given distance
+        for (int dist = 1; dist <= maxDistance; dist++)
+        {
+            if (parentMap.GetParticleAt(X - dist, Y) is GasParticle && parentMap.GetParticleAt(X - dist - 1, Y) == null && dist < maxDistance)
+                continue;
+
+            if (!parentMap.IsInBounds(X - dist, Y) || parentMap.GetParticleAt(X - dist, Y) != null)
+            {
+                Move(X - dist + 1, Y);
+                return;
+            }
+        }
+
+        Move(X - maxDistance, Y);
+    }
+
+    public void DisperseRight(int maxDistance)
+    {
+        // Attempt to disperse right up to the given distance
+        for (int dist = 1; dist <= maxDistance; dist++)
+        {
+            if (parentMap.GetParticleAt(X + dist, Y) is GasParticle && parentMap.GetParticleAt(X + dist + 1, Y) == null && dist < maxDistance)
+                continue;
+
+            if (!parentMap.IsInBounds(X + dist, Y) || parentMap.GetParticleAt(X + dist, Y) != null)
+            {
+                Move(X + dist - 1, Y);
+                return;
+            }
+        }
+
+        Move(X + maxDistance, Y);
     }
 }

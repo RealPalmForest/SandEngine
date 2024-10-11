@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 
 namespace SandEngine.AbstractParticles;
@@ -13,27 +14,67 @@ public abstract class LiquidParticle : MovingParticle
     /// <returns>Returns true if particle was successfully moved</returns>
     protected virtual bool DefaultLiquidBehaviour()
     {
-        UpdateVerticalMovement();
-
-        if (GetRight() == null && GetBelowRight() == null)
-            Move(X + 1, Y + 1);
-        else if (GetLeft() == null && GetBelowLeft() == null)
-            Move(X - 1, Y + 1);
-        else
+        if (!UpdateVerticalMovement())
         {
-            // Disperse in the less filled direction
-            if (/*CountLiquidsInDirection(1, DispersionAmount * 2) > CountLiquidsInDirection(-1, DispersionAmount * 2)*/Globals.Random.Next(2) == 0)
-                DisperseHorizontally(-DispersionAmount);
+            if (GetBelow() is GasParticle)
+                Displace(X, Y + 1);
+
+            if (GetLeft() == null && GetBelowLeft() == null)
+                Move(X - 1, Y + 1);
+            else if (GetRight() == null && GetBelowRight() == null)
+                Move(X + 1, Y + 1);
+
+
+            if (Globals.Random.Next(2) == 0)
+                DisperseLeft(DispersionAmount);
             else
-                DisperseHorizontally(DispersionAmount);
+                DisperseRight(DispersionAmount);
         }
-
-
-
 
         return true;
     }
 
+
+    public void DisperseLeft(int maxDistance)
+    {
+        // Attempt to disperse left up to the given distance
+        for (int dist = 1; dist <= maxDistance; dist++)
+        {
+            if (parentMap.GetParticleAt(X - dist, Y) is LiquidParticle && parentMap.GetParticleAt(X - dist - 1, Y) == null && dist < maxDistance)
+                continue;
+
+            if (!parentMap.IsInBounds(X - dist, Y) || parentMap.GetParticleAt(X - dist, Y) != null)
+            {
+                Move(X - dist + 1, Y);
+                return;
+            }
+        }
+
+        Move(X - maxDistance, Y);
+    }
+
+    public void DisperseRight(int maxDistance)
+    {
+        // Attempt to disperse right up to the given distance
+        for (int dist = 1; dist <= maxDistance; dist++)
+        {
+            if (parentMap.GetParticleAt(X + dist, Y) is LiquidParticle && parentMap.GetParticleAt(X + dist + 1, Y) == null && dist < maxDistance)
+                continue;
+
+            if (!parentMap.IsInBounds(X + dist, Y) || parentMap.GetParticleAt(X + dist, Y) != null)
+            {
+                Move(X + dist - 1, Y);
+                return;
+            }
+        }
+
+        Move(X + maxDistance, Y);
+    }
+
+
+
+
+    [Obsolete("I don't think it works")]
     /// <summary>
     /// Counts the amount of particles in a horizontal line of the specified direction
     /// </summary>
@@ -51,7 +92,9 @@ public abstract class LiquidParticle : MovingParticle
 
             // Count the liquid particles in a row
             Particle particle = parentMap.GetParticleAt(targetX, Y);
-            if (particle != null && particle is LiquidParticle)
+            if (particle == null)
+                continue;
+            else if (particle is LiquidParticle)
                 liquidCount++;
             else break;
         }

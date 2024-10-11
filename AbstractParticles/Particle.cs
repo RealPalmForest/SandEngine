@@ -48,7 +48,7 @@ public abstract class Particle
         if (newX == X && newY == Y)
             return;
 
-        DisableSurroundingStaticStatus();
+        DisableSurroundingStaticState();
 
         Remove();
         parentMap.SetParticleAt(newX, newY, this);
@@ -62,8 +62,8 @@ public abstract class Particle
         if (X == x && Y == y)
             return;
 
-        DisableSurroundingStaticStatus();
-        parentMap.GetParticleAt(x, y).DisableSurroundingStaticStatus();
+        DisableSurroundingStaticState();
+        parentMap.GetParticleAt(x, y).DisableSurroundingStaticState();
 
         parentMap.SetParticleAt(X, Y, parentMap.GetParticleAt(x, y));
         parentMap.SetParticleAt(x, y, this);
@@ -74,7 +74,7 @@ public abstract class Particle
         parentMap.SetParticleAt(X, Y, null);
     }
 
-    private void DisableSurroundingStaticStatus()
+    public void DisableSurroundingStaticState()
     {
         if (GetAbove() != null) GetAbove().StaticState = false;
         if (GetBelow() != null) GetBelow().StaticState = false;

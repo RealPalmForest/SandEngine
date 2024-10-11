@@ -8,8 +8,9 @@ public class Smoke : GasParticle
     public Smoke(GameMap parentMap) : base(parentMap)
     {
         Color = Color.Gray;
-        DispersionAmount = 5;
+        DispersionAmount = 15;
         Acceleration = -0.1f;
+        Gravity = -1;
         MaxVelocity = 1;
     }
 
