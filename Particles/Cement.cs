@@ -8,7 +8,7 @@ public class Cement : LiquidParticle
     public Cement(GameMap parentMap) : base(parentMap)
     {
         DispersionAmount = 1;
-        LiquidDensity = 2;
+        LiquidDensity = 3;
 
         int darken = Globals.Random.Next(20, 31);
         Color = new Color(

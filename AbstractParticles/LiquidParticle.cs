@@ -22,28 +22,35 @@ public abstract class LiquidParticle : MovingParticle
         {
             // If there is another liquid particle below, and it's less dense than this one, displace
             if (GetBelow() is LiquidParticle && (GetBelow() as LiquidParticle).LiquidDensity < LiquidDensity)
+            {
                 Displace(X, Y + 1);
+                return true;
+            }
+            // Liquids fall through gasses
+            else if (GetBelow() is GasParticle)
+            {
+                Displace(X, Y + 1);
+                return true;
+            }
 
-            // Repeat check for below-left and below-right
+            // Check for below-left and below-right for liquids to displace
             if (GetBelowLeft() is LiquidParticle && (GetBelowLeft() as LiquidParticle).LiquidDensity < LiquidDensity)
                 SwapWith(X - 1, Y + 1);
-            if (GetBelowRight() is LiquidParticle && (GetBelowRight() as LiquidParticle).LiquidDensity < LiquidDensity)
+            else if (GetBelowRight() is LiquidParticle && (GetBelowRight() as LiquidParticle).LiquidDensity < LiquidDensity)
                 SwapWith(X + 1, Y + 1);
-
-
-            if (GetBelow() is GasParticle)
-                Displace(X, Y + 1);
-
-            if (GetLeft() == null && GetBelowLeft() == null)
+            // Check for normal below-left and below-right movement
+            else if (GetLeft() == null && GetBelowLeft() == null)
                 Move(X - 1, Y + 1);
             else if (GetRight() == null && GetBelowRight() == null)
                 Move(X + 1, Y + 1);
-
-
-            if (Globals.Random.Next(2) == 0)
-                DisperseLeft(DispersionAmount);
             else
-                DisperseRight(DispersionAmount);
+            {
+                // If all horizontal movement fails, disperse
+                if (Globals.Random.Next(2) == 0)
+                    DisperseLeft(DispersionAmount);
+                else
+                    DisperseRight(DispersionAmount);
+            }
         }
 
         return true;
@@ -55,22 +62,39 @@ public abstract class LiquidParticle : MovingParticle
         // Attempt to disperse left up to the given distance
         for (int dist = 1; dist <= maxDistance; dist++)
         {
-            if (parentMap.GetParticleAt(X - dist, Y) is LiquidParticle && parentMap.GetParticleAt(X - dist - 1, Y) == null && dist < maxDistance)
+            Particle targetParticle = parentMap.GetParticleAt(X - dist, Y);
+
+            if (targetParticle is LiquidParticle && parentMap.GetParticleAt(X - dist - 1, Y) == null && dist < maxDistance)
                 continue;
 
-            if (!parentMap.IsInBounds(X - dist, Y) || parentMap.GetParticleAt(X - dist, Y) != null && !(parentMap.GetParticleAt(X - dist, Y) is LiquidParticle))
+            if (targetParticle is LiquidParticle)
             {
-                SwapWith(X - dist + 1, Y);
-                return;
+                // If the target  particle is the same liquid, continue
+                if (targetParticle.GetType() == this.GetType())
+                {
+                    continue;
+                }
+                // If it's a different liquid, they swap
+                else
+                {
+                    SwapWith(X - dist, Y);
+                    return;
+                }
             }
 
-            if (parentMap.GetParticleAt(X - dist, Y) is LiquidParticle)
+            if (!parentMap.IsInBounds(X - dist, Y) || targetParticle != null/* || (targetParticle != null && !(targetParticle is LiquidParticle))*/)
             {
-
+                // Swap with the previous particle if it's either empty or a particle of a different type
+                if (parentMap.GetParticleAt(X - dist + 1, Y) == null || (parentMap.GetParticleAt(X - dist + 1, Y) != null && parentMap.GetParticleAt(X - dist + 1, Y).GetType() != this.GetType()))
+                    SwapWith(X - dist + 1, Y);
+                return;
             }
         }
 
-        SwapWith(X - maxDistance, Y);
+        if (parentMap.GetParticleAt(X - maxDistance, Y) == null)
+            SwapWith(X - maxDistance, Y);
+        else if (parentMap.GetParticleAt(X - maxDistance, Y).GetType() != this.GetType())
+            SwapWith(X - maxDistance, Y);
     }
 
     public void DisperseRight(int maxDistance)
@@ -78,17 +102,39 @@ public abstract class LiquidParticle : MovingParticle
         // Attempt to disperse right up to the given distance
         for (int dist = 1; dist <= maxDistance; dist++)
         {
-            if (parentMap.GetParticleAt(X + dist, Y) is LiquidParticle && parentMap.GetParticleAt(X + dist + 1, Y) == null && dist < maxDistance)
+            Particle targetParticle = parentMap.GetParticleAt(X + dist, Y);
+
+            if (targetParticle is LiquidParticle)
+            {
+                // If the target  particle is the same liquid, continue
+                if (targetParticle.GetType() == this.GetType())
+                {
+                    continue;
+                }
+                // If it's a different liquid, they swap
+                else
+                {
+                    SwapWith(X - dist, Y);
+                    return;
+                }
+            }
+
+            if (targetParticle is LiquidParticle && parentMap.GetParticleAt(X + dist + 1, Y) == null && dist < maxDistance)
                 continue;
 
-            if (!parentMap.IsInBounds(X + dist, Y) || parentMap.GetParticleAt(X + dist, Y) != null && !(parentMap.GetParticleAt(X + dist, Y) is LiquidParticle))
+            if (!parentMap.IsInBounds(X + dist, Y) || targetParticle != null/* && !(targetParticle is LiquidParticle)*/)
             {
-                SwapWith(X + dist - 1, Y);
+                // Swap with the previous particle if it's either empty or a particle of a different type
+                if (parentMap.GetParticleAt(X + dist - 1, Y) == null || (parentMap.GetParticleAt(X + dist - 1, Y) != null && parentMap.GetParticleAt(X + dist - 1, Y).GetType() != this.GetType()))
+                    SwapWith(X + dist - 1, Y);
                 return;
             }
         }
 
-        SwapWith(X + maxDistance, Y);
+        if (parentMap.GetParticleAt(X + maxDistance, Y) == null)
+            SwapWith(X + maxDistance, Y);
+        else if (parentMap.GetParticleAt(X + maxDistance, Y).GetType() != this.GetType())
+            SwapWith(X + maxDistance, Y);
     }
 
 
