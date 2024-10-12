@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using SandEngine.AbstractParticles;
 
-namespace SandEngine.Particles;
+namespace SandEngine.Particles.Liquids;
 
 public class Water : LiquidParticle
 {

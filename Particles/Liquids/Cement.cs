@@ -1,7 +1,8 @@
 using Microsoft.Xna.Framework;
 using SandEngine.AbstractParticles;
+using SandEngine.Particles.Stable;
 
-namespace SandEngine.Particles;
+namespace SandEngine.Particles.Liquids;
 
 public class Cement : LiquidParticle
 {

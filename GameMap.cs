@@ -1,15 +1,14 @@
-using System.Data;
-using System.Linq;
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using SandEngine.Particles;
-using SandEngine.AbstractParticles;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System;
-using System.Reflection;
+using SandEngine.AbstractParticles;
+using SandEngine.Particles.Liquids;
+using SandEngine.Particles.Falling;
+using SandEngine.Particles.Stable;
+using SandEngine.Particles.Gasses;
 
 namespace SandEngine;
 
@@ -21,7 +20,17 @@ public class GameMap
 
     public Particle[,] map;
 
-    private Type[] spawnableParticles;
+    private readonly Type[] particleTypes = new Type[]
+    {
+        typeof(Sand),
+        typeof(Water),
+        typeof(Wood),
+        typeof(Smoke),
+        typeof(Dirt),
+        typeof(Cement),
+        typeof(Concrete)
+    };
+
     private int selectedParticleIndex = 0;
 
     public GameMap(int width, int height)
@@ -33,16 +42,6 @@ public class GameMap
         Height = height;
 
         map = new Particle[Width, Height];
-
-        spawnableParticles = new Type[] {
-            new Sand(this).GetType(),
-            new Water(this).GetType(),
-            new Wood(this).GetType(),
-            new Smoke(this).GetType(),
-            new Dirt(this).GetType(),
-            new Cement(this).GetType(),
-            new Concrete(this).GetType()
-        };
     }
 
     public void Draw()
@@ -77,8 +76,8 @@ public class GameMap
         if (Math.Sign(InputManager.MouseOld.ScrollWheelValue - InputManager.Mouse.ScrollWheelValue) != 0)
         {
             selectedParticleIndex += Math.Sign(InputManager.MouseOld.ScrollWheelValue - InputManager.Mouse.ScrollWheelValue);
-            selectedParticleIndex = Math.Clamp(selectedParticleIndex, 0, spawnableParticles.Length - 1);
-            Debug.WriteLine("Selected particle: " + spawnableParticles[selectedParticleIndex].Name.ToUpper());
+            selectedParticleIndex = Math.Clamp(selectedParticleIndex, 0, particleTypes.Length - 1);
+            //Debug.WriteLine("Selected particle: " + particleTypes[selectedParticleIndex].Name.ToUpper());
         }
 
         Point mousePos = InputManager.Mouse.Position;
@@ -88,22 +87,22 @@ public class GameMap
         {
             foreach ((int, int) pos in GetLine(oldMousePos.X, oldMousePos.Y, mousePos.X, mousePos.Y))
             {
-                bool stable = spawnableParticles[selectedParticleIndex].IsSubclassOf(typeof(StableParticle));
+                bool stable = particleTypes[selectedParticleIndex].IsSubclassOf(typeof(StableParticle));
 
-                //SetParticleAt(pos.Item1, pos.Item2, CreateParticle(spawnableParticles[selectedParticleIndex]));
-                Fill(pos.Item1 - 4, pos.Item2 - 4, pos.Item1 + 4, pos.Item2 + 4, CreateParticle(spawnableParticles[selectedParticleIndex]), stable ? 1f : 0.03f);
+                //SetParticleAt(pos.Item1, pos.Item2, CreateParticle(particleTypes[selectedParticleIndex]));
+                Fill(pos.Item1 - 4, pos.Item2 - 4, pos.Item1 + 4, pos.Item2 + 4, CreateParticle(particleTypes[selectedParticleIndex]), stable ? 1f : 0.03f);
             }
         }
         else if (InputManager.Mouse.RightButton == ButtonState.Pressed)
         {
             foreach ((int, int) pos in GetLine(oldMousePos.X, oldMousePos.Y, mousePos.X, mousePos.Y))
             {
-                //SetParticleAt(pos.Item1, pos.Item2, spawnableParticles[selectedParticleIndex].Clone());
+                //SetParticleAt(pos.Item1, pos.Item2, particleTypes[selectedParticleIndex].Clone());
                 Fill(pos.Item1 - 4, pos.Item2 - 4, pos.Item1 + 4, pos.Item2 + 4, null);
             }
         }
 
-        // if (GetParticleAt(mousePos.X, mousePos.Y) != null) Debug.WriteLine(GetParticleAt(mousePos.X, mousePos.Y).Lifetime);
+        // Debug.WriteLineIf(GetParticleAt(mousePos.X, mousePos.Y) != null, GetParticleAt(mousePos.X, mousePos.Y).Lifetime);
 
         for (int y = Height - 1; y >= 0; y--)
         {
@@ -271,6 +270,6 @@ public class GameMap
 
     private void DrawUI()
     {
-        Globals.SpriteBatch.DrawString(Globals.MainFont, spawnableParticles[selectedParticleIndex].Name, new Vector2(15, 15), Color.White);
+        Globals.SpriteBatch.DrawString(Globals.MainFont, particleTypes[selectedParticleIndex].Name, new Vector2(15, 15), Color.White);
     }
 }
