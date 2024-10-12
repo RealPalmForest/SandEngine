@@ -10,7 +10,7 @@ public class Cement : LiquidParticle
         DispersionAmount = 1;
         LiquidDensity = 3;
 
-        int darken = Globals.Random.Next(20, 31);
+        int darken = Globals.Random.Next(20, 41);
         Color = new Color(
             Color.DarkGray.R - darken,
             Color.DarkGray.G - darken,
@@ -23,7 +23,17 @@ public class Cement : LiquidParticle
 
         if (Lifetime > 1000)
         {
-            Replace(new Concrete(parentMap));
+            // If this particle as at the very bottom, solidify
+            if (!parentMap.IsInBounds(X, Y + 1))
+                Solidify();
+            // If there is a different particle below, solidify
+            else if (GetBelow() != null && GetBelow().GetType() != this.GetType())
+                Solidify();
         }
+    }
+
+    public void Solidify()
+    {
+        Replace(new Concrete(parentMap));
     }
 }

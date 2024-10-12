@@ -10,7 +10,7 @@ public class Water : LiquidParticle
         DispersionAmount = 9;
         LiquidDensity = 1;
 
-        int darken = Globals.Random.Next(50, 71);
+        int darken = Globals.Random.Next(45, 61);
         Color = new Color(
             Color.DodgerBlue.R - darken,
             Color.DodgerBlue.G - darken,
