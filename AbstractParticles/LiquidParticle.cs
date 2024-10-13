@@ -5,8 +5,11 @@ namespace SandEngine.AbstractParticles;
 
 public abstract class LiquidParticle : MovingParticle
 {
-    // Determines which liquids float above others, and which switch
-    // Lower density rises above higher density liquids
+
+    /// <summary>
+    /// Determines which liquids float above others, and which switch
+    /// Lower density rises above higher density liquids
+    /// </summary>
     public float LiquidDensity { get; protected set; } = 1;
 
     public LiquidParticle(GameMap parentMap) : base(parentMap) { }
@@ -110,36 +113,5 @@ public abstract class LiquidParticle : MovingParticle
         parentMap.GetParticleAt(X + maxDistance, Y).GetType() != this.GetType() && // of a different type,
         (parentMap.GetParticleAt(X + maxDistance, Y) as LiquidParticle).LiquidDensity < LiquidDensity)) // and it's less dense
         { SwapWith(X + maxDistance, Y); } // Then swap with it
-    }
-
-
-
-
-    [Obsolete("I don't think it works")]
-    /// <summary>
-    /// Counts the amount of particles in a horizontal line of the specified direction
-    /// </summary>
-    private int CountLiquidsInDirection(int direction, int maxDistance)
-    {
-        int liquidCount = 0;
-
-        // Check each space in the specified direction up to the max distance
-        for (int i = 1; i <= maxDistance; i++)
-        {
-            int targetX = X + (i * direction);
-
-            if (!parentMap.IsInBounds(targetX, Y))
-                break;
-
-            // Count the liquid particles in a row
-            Particle particle = parentMap.GetParticleAt(targetX, Y);
-            if (particle == null)
-                continue;
-            else if (particle is LiquidParticle)
-                liquidCount++;
-            else break;
-        }
-
-        return liquidCount;
     }
 }

@@ -16,6 +16,12 @@ public abstract class Particle
     public int Y { get; set; }
 
 
+    /// <summary>
+    /// How resistant this particle is to fire damage. Negative fire resistant makes this particle immune to fire damage.
+    /// </summary>
+    public float FireResistance { get; set; } = -1f;
+
+
     protected GameMap parentMap;
 
 

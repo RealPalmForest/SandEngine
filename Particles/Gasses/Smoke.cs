@@ -7,7 +7,7 @@ public class Smoke : GasParticle
 {
     public Smoke(GameMap parentMap) : base(parentMap)
     {
-        int darken = Globals.Random.Next(20, 41);
+        int darken = Globals.Random.Next(40, 51);
         Color = new Color(
             Color.Gray.R - darken,
             Color.Gray.G - darken,

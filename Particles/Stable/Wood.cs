@@ -7,6 +7,8 @@ public class Wood : StableParticle
 {
     public Wood(GameMap parentMap) : base(parentMap)
     {
+        FireResistance = 1;
+
         int clr = Globals.Random.Next(3);
         switch (clr)
         {

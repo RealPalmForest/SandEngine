@@ -111,43 +111,4 @@ public abstract class MovingParticle : Particle
         // ... otherwise swap this particle with the liquid
         else SwapWith(x, y);
     }
-
-
-    /// <summary>
-    /// Attempts to move particle as far as possible until specified maximum distance
-    /// </summary>
-    /// <returns>Returns true if particle was moved successfully</returns>
-    protected bool DisperseHorizontally(int maxDistance)
-    {
-        int direction = Math.Sign(maxDistance); // Determine spread direction
-
-        if (X + maxDistance >= parentMap.Width - 1 || X + maxDistance <= 0)
-            return false;
-
-        for (int i = 1; i <= Math.Abs(maxDistance); i++)
-        {
-            int targetX = X + (i * direction);
-
-            // if the target space is out of bounds, stop at the previous space
-            if (!parentMap.IsInBounds(targetX, Y))
-            {
-                Move(X + ((i - 1) * direction), Y);
-                return i > 1 ? true : false;
-            }
-
-
-            Particle targetParticle = parentMap.GetParticleAt(targetX, Y);
-
-            // If the space is not empty, move to the previous space
-            if (targetParticle != null)
-            {
-                Move(X + ((i - 1) * direction), Y);
-                return true;
-            }
-        }
-
-        // If all spaces are empty, move to the farthest valid position
-        Move(X + maxDistance, Y);
-        return true;
-    }
 }

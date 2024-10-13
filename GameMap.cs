@@ -9,6 +9,7 @@ using SandEngine.Particles.Liquids;
 using SandEngine.Particles.Falling;
 using SandEngine.Particles.Stable;
 using SandEngine.Particles.Gasses;
+using SandEngine.Particles.Other;
 
 namespace SandEngine;
 
@@ -28,7 +29,8 @@ public class GameMap
         typeof(Smoke),
         typeof(Dirt),
         typeof(Cement),
-        typeof(Concrete)
+        typeof(Concrete),
+        typeof(Fire)
     };
 
     private int selectedParticleIndex = 0;
